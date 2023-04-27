@@ -1,6 +1,6 @@
 import { db } from './firebaseConnection'
 import './app.css'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   doc, 
   setDoc, 
@@ -8,7 +8,9 @@ import {
   addDoc, 
   getDoc, 
   getDocs,
-  updateDoc
+  updateDoc,
+  deleteDoc,
+  onSnapshot
  } from 'firebase/firestore'
 
 function App() {
@@ -17,6 +19,28 @@ function App() {
   const [autor, setAutor] = useState('')
   const [posts, setPosts] = useState([])
   const [idPost, setIdPost] = useState('')
+
+  // Real time do firebase (onSnapshot)
+  useEffect(() => {
+    async function loadPosts() {
+      const unsub = onSnapshot(collection(db, 'posts'), (snapshot) => {
+        let listPost = [];
+
+        snapshot.forEach((doc) => {
+          listPost.push({
+            id: doc.id,
+            titulo: doc.data().titulo,
+            autor: doc.data().autor,
+          })
+        })
+
+        setPosts(listPost)
+      })
+    }
+
+    loadPosts();
+
+  }, []) 
 
   async function handleAdd() {
     /*await setDoc(doc(db, 'posts', '12345'), {
@@ -96,6 +120,17 @@ function App() {
     })
   }
 
+  async function excluirPost(id) {
+    const doctRef = doc(db, 'posts', id)
+    await deleteDoc(doctRef)
+    .then(() => {
+      alert('Post deletado com sucesso!')
+    })
+    .catch((erro) => {
+      console.log('Gerou erro ao excluir'+erro)
+    })
+  }
+
   return (
     <div>
       <h1>ReactJS + Firebase</h1>
@@ -135,7 +170,8 @@ function App() {
               <li key={post.id}>
                 <strong>ID: {post.id}</strong><br />
                 <span>Título: {post.titulo}</span><br />
-                <span>Autor: {post.autor}</span><br /><br />
+                <span>Autor: {post.autor}</span><br />
+                <button onClick={ () => excluirPost(post.id)}>Excluir</button><br /><br />
               </li>
             )
           })}
