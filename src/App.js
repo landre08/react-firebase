@@ -16,7 +16,8 @@ import {
  import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  onAuthStateChanged
  } from 'firebase/auth'
 
 function App() {
@@ -51,6 +52,35 @@ function App() {
     loadPosts();
 
   }, []) 
+
+  // Fazer permanecer logado. O onAuthStateChanged monitora
+  useEffect(() => {
+
+    async function checkLogin() {
+      onAuthStateChanged(auth, (user) => {
+
+        if (user) {
+          // Se possui usuário logado ele entra aqui.
+          // Aqui quando eu logar e der f5, vai continuar exibindo que o usuário está logado.
+          console.log(user)
+          setUser(true)
+          setUserDetail({
+            uid: user.id,
+            email: user.email
+          })
+
+        } else {
+          // Se não possui usuário logado ele entra aqui.
+          setUser(false)
+          setUserDetail({})
+        }
+
+      })
+    }
+
+    checkLogin();
+
+  }, [])
 
   async function handleAdd() {
     /*await setDoc(doc(db, 'posts', '12345'), {
